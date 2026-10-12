@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.pytest_cache/
+*.apk
+*.ipa
+*.sarif
+*.html
+*.pdf
+.env
+.env.*

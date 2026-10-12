@@ -1,0 +1,165 @@
+rules:
+  - id: SP-SECRET-001
+    title: "Hardcoded AWS Access Key ID"
+    severity: "Critical"
+    category: "MASVS-CRYPTO"
+    cwe: "CWE-798"
+    match: "(?i)AKIA[0-9A-Z]{16}"
+    exclude: "example|dummy|test|SAMPLE"
+    extensions: [".java", ".kt", ".smali", ".js", ".ts", ".xml", ".json", ".properties"]
+    description: "Detected a hardcoded AWS Access Key ID in application code or resources, allowing attackers to compromise cloud infrastructure."
+    remediation: "Remove hardcoded cloud credentials immediately, rotate the IAM key in AWS Console, and use short-lived STS tokens via a backend broker."
+
+  - id: SP-SECRET-002
+    title: "Hardcoded Google Cloud / Firebase API Key"
+    severity: "High"
+    category: "MASVS-CRYPTO"
+    cwe: "CWE-798"
+    match: "AIza[0-9A-Za-z\\-_]{35}"
+    exclude: "example|dummy|test"
+    extensions: [".java", ".kt", ".smali", ".js", ".ts", ".xml", ".json"]
+    description: "Detected an embedded Google Cloud or Firebase API key. If unrestricted, attackers can abuse quota or access cloud APIs."
+    remediation: "Restrict the API key in Google Cloud Console to your Android package name and SHA-256 signing certificate fingerprint."
+
+  - id: SP-SECRET-003
+    title: "Hardcoded Bearer / JWT Authorization Token"
+    severity: "High"
+    category: "MASVS-AUTH"
+    cwe: "CWE-798"
+    match: "(?i)Bearer\\s+[a-zA-Z0-9\\-_\\.]{24,}"
+    exclude: "example|dummy|test"
+    extensions: [".java", ".kt", ".smali", ".js", ".ts"]
+    description: "Detected a hardcoded Bearer or JWT token in the application binary."
+    remediation: "Never embed static authorization tokens in client code. Issue per-user tokens dynamically and store them in Android Keystore / EncryptedSharedPreferences."
+
+  - id: SP-SECRET-004
+    title: "Hardcoded Password or Secret Assignment"
+    severity: "High"
+    category: "MASVS-STORAGE"
+    cwe: "CWE-259"
+    match: "(?i)(password|passwd|api_secret|client_secret|private_key)\\s*=\\s*['\"][^'\"]{6,}['\"]"
+    exclude: "null|empty|test|example|placeholder|your_"
+    extensions: [".java", ".kt", ".smali", ".js", ".ts", ".properties"]
+    description: "Detected a hardcoded password or secret string assigned directly in source code."
+    remediation: "Eliminate hardcoded secrets from client binaries. Authenticate users dynamically and keep confidential secrets strictly on the backend."
+
+  - id: SP-CRYPTO-001
+    title: "Insecure Cipher Block Mode (AES/DES in ECB Mode)"
+    severity: "Critical"
+    category: "MASVS-CRYPTO"
+    cwe: "CWE-327"
+    match: "(?i)Cipher\\.getInstance\\(\\s*['\"][A-Z0-9]+/ECB/[A-Za-z0-9]+['\"]\\s*\\)"
+    exclude: ""
+    extensions: [".java", ".kt", ".smali"]
+    description: "ECB block mode encrypts identical plaintext blocks into identical ciphertext blocks, leaking data patterns."
+    remediation: "Use authenticated encryption with `AES/GCM/NoPadding` and a cryptographically random 12-byte IV generated per encryption."
+
+  - id: SP-CRYPTO-002
+    title: "Weak Cryptographic Hash Algorithm (MD5 / SHA-1)"
+    severity: "High"
+    category: "MASVS-CRYPTO"
+    cwe: "CWE-328"
+    match: "(?i)MessageDigest\\.getInstance\\(\\s*['\"](MD5|SHA-1|SHA1)['\"]\\s*\\)"
+    exclude: ""
+    extensions: [".java", ".kt", ".smali"]
+    description: "MD5 and SHA-1 are cryptographically broken and vulnerable to collision attacks."
+    remediation: "Upgrade to `SHA-256` or `SHA-512` for integrity hashing, or PBKDF2/Argon2id for password derivation."
+
+  - id: SP-CRYPTO-003
+    title: "Static / Hardcoded Initialization Vector (IV)"
+    severity: "High"
+    category: "MASVS-CRYPTO"
+    cwe: "CWE-329"
+    match: "(?i)IvParameterSpec\\(\\s*new\\s+byte\\[\\]\\s*\\{[0-9\\s,\\-]*\\}\\s*\\)"
+    exclude: ""
+    extensions: [".java", ".kt"]
+    description: "Using a static Initialization Vector (IV) breaks semantic security and allows ciphertext correlation."
+    remediation: "Generate a fresh random IV using `SecureRandom` for every encryption operation."
+
+  - id: SP-STORAGE-001
+    title: "Insecure World-Readable / World-Writable SharedPreferences"
+    severity: "Critical"
+    category: "MASVS-STORAGE"
+    cwe: "CWE-276"
+    match: "(?i)(MODE_WORLD_READABLE|MODE_WORLD_WRITABLE)"
+    exclude: ""
+    extensions: [".java", ".kt", ".smali"]
+    description: "Files or SharedPreferences created with world-readable/writable flags can be read or tampered with by any app on the device."
+    remediation: "Use `Context.MODE_PRIVATE` and `EncryptedSharedPreferences` backed by the Android Keystore."
+
+  - id: SP-STORAGE-002
+    title: "Raw SQLite Query Injection Vector"
+    severity: "High"
+    category: "MASVS-CODE"
+    cwe: "CWE-89"
+    match: "(?i)(rawQuery|execSQL)\\s*\\(\\s*['\"].*\\+"
+    exclude: ""
+    extensions: [".java", ".kt"]
+    description: "Concatenating dynamic strings into `rawQuery` or `execSQL` enables local SQL injection across ContentProviders or local databases."
+    remediation: "Use parameterized queries with `?` placeholders (`rawQuery(sql, selectionArgs)`) or Room DAO prepared statements."
+
+  - id: SP-WEBVIEW-001
+    title: "Exposed WebView JavaScript Bridge (addJavascriptInterface)"
+    severity: "High"
+    category: "MASVS-PLATFORM"
+    cwe: "CWE-749"
+    match: "(?i)addJavascriptInterface\\s*\\("
+    exclude: ""
+    extensions: [".java", ".kt", ".smali"]
+    description: "Exposing native Java/Kotlin objects to WebView JavaScript allows untrusted web content to invoke native methods."
+    remediation: "Restrict WebView navigation to trusted HTTPS origins, annotate exposed methods with `@JavascriptInterface`, or use `WebMessagePort`."
+
+  - id: SP-WEBVIEW-002
+    title: "WebView JavaScript Execution Enabled"
+    severity: "Medium"
+    category: "MASVS-PLATFORM"
+    cwe: "CWE-79"
+    match: "(?i)setJavaScriptEnabled\\s*\\(\\s*true\\s*\\)"
+    exclude: ""
+    extensions: [".java", ".kt", ".smali"]
+    description: "Enabling JavaScript in WebView increases Cross-Site Scripting (XSS) risk if untrusted URLs or intent extras are loaded."
+    remediation: "Disable JavaScript unless strictly required, and validate all URLs loaded into `WebView.loadUrl()`."
+
+  - id: SP-WEBVIEW-003
+    title: "WebView Local File System Access Enabled"
+    severity: "Medium"
+    category: "MASVS-PLATFORM"
+    cwe: "CWE-200"
+    match: "(?i)(setAllowFileAccess|setAllowUniversalAccessFromFileURLs)\\s*\\(\\s*true\\s*\\)"
+    exclude: ""
+    extensions: [".java", ".kt", ".smali"]
+    description: "Allowing file:// access inside WebView can allow attackers to exfiltrate private app sandbox files via XSS."
+    remediation: "Explicitly set `setAllowFileAccess(false)` and `setAllowFileAccessFromFileURLs(false)`."
+
+  - id: SP-NETWORK-001
+    title: "Insecure TrustAll X509TrustManager / SSL Bypass"
+    severity: "Critical"
+    category: "MASVS-NETWORK"
+    cwe: "CWE-295"
+    match: "(?i)(ALLOW_ALL_HOSTNAME_VERIFIER|NullHostnameVerifier|checkServerTrusted\\s*\\([^)]*\\)\\s*\\{\\s*\\})"
+    exclude: ""
+    extensions: [".java", ".kt", ".smali"]
+    description: "Accepting all TLS certificates or disabling hostname verification exposes network traffic to Man-in-the-Middle (MitM) interception."
+    remediation: "Remove custom empty `checkServerTrusted` implementations and enforce standard TLS validation with Certificate Pinning."
+
+  - id: SP-MALWARE-001
+    title: "Dynamic DEX Payload Loading (DexClassLoader)"
+    severity: "Critical"
+    category: "MASVS-RESILIENCE"
+    cwe: "CWE-494"
+    match: "(?i)(DexClassLoader|PathClassLoader|InMemoryDexClassLoader|DexFile\\.loadDex)"
+    exclude: ""
+    extensions: [".java", ".kt", ".smali"]
+    description: "Application dynamically loads executable DEX bytecode at runtime, a technique frequently used by malware droppers or unverified plugin loaders."
+    remediation: "Package all executable code inside the signed APK and verify cryptographic signatures before loading any dynamic module."
+
+  - id: SP-MALWARE-002
+    title: "Native Shell Command Execution (Runtime.exec / ProcessBuilder)"
+    severity: "High"
+    category: "MASVS-CODE"
+    cwe: "CWE-78"
+    match: "(?i)(Runtime\\.getRuntime\\(\\)\\.exec|ProcessBuilder)"
+    exclude: ""
+    extensions: [".java", ".kt", ".smali"]
+    description: "Executing system shell commands from Android application code introduces command injection and privilege escalation risks."
+    remediation: "Use native Android SDK APIs instead of spawning shell processes."

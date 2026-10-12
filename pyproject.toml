@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "strikeprobe-cli"
+version = "1.0.0"
+description = "StrikeProbe Developer CLI — Zero-Retention Android APK & Source Code SAST Scanner for OWASP MASVS v2.0"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+authors = [
+    { name = "ARASAN011" }
+]
+keywords = ["android", "security", "apk", "sast", "owasp", "masvs", "mastg", "devsecops", "cli"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+]
+dependencies = [
+    "pyaxmlparser>=0.3.31",
+    "PyYAML>=6.0.1",
+]
+
+[project.scripts]
+strikeprobe = "strikeprobe.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["strikeprobe*"]
+
+[tool.setuptools.package-data]
+strikeprobe = ["rules/*.yaml"]

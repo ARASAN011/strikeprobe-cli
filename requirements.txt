@@ -1,0 +1,2 @@
+pyaxmlparser>=0.3.31
+PyYAML>=6.0.1
